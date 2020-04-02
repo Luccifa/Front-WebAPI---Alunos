@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+	<link rel="stylesheet" type="text/css" href="styles/login.css">
+</head>
+
+<body>
+
+    <div class="container">
+        <form class="form-signin" onsubmit="login()">
+            <h2 class="form-signin-heading">Academico</h2>
+            <label for="email" class="sr-only">E-mail</label>
+            <input type="text" id="email" class="form-control" placeholder="E-mail" required=""
+                autofocus="">
+            <label for="password" class="sr-only">Senha</label>
+            <input type="password" id="password" class="form-control" placeholder="Senha" required="">
+            <div class="checkbox">
+                <label>
+                    <input type="checkbox" value="remember-me"> Lembre-me
+                </label>
+            </div>
+            <button class="btn btn-lg btn-primary btn-block" type="submit">Entrar</button>
+        </form>
+    </div>
+    <script>
+
+        (() => {
+            if(sessionStorage.getItem('token') !== null) {
+               window.location.href = "index.html";          
+            }
+        })()
+
+        var login = function(){
+            event.preventDefault();
+
+            var nome = document.querySelector('#email');
+            var password = document.querySelector('#password');
+
+            var xhr = new XMLHttpRequest();
+
+            xhr.open('POST', 'https://localhost:44381/token', true);
+            xhr.setRequestHeader('content-type', 'application/x-wwww-form-urlencoded');
+
+
+            xhr.onload = function() {
+                var resultado = JSON.parse(this.responseText);
+                console.log(`${resultado.token_type} ${resultado.access_token}`);
+                console.log(resultado);
+                if (resultado.error !== 'invalid_grant' ) {
+                    // Armazenando o token
+                    sessionStorage.setItem('token', `${resultado.token_type} ${resultado.access_token}`);
+                    sessionStorage.setItem('username', `${resultado.Username}`);
+                    verificar();
+                }
+                else
+                {
+                    alert(resultado.error_description);
+                    nome.value = '';
+                    password.value = '';
+                } 
+            }
+
+            xhr.send(`grant_type=password&username=${nome.value}&password=${password.value}`);
+        }
+
+        var verificar = function() {
+
+            var xhr = new XMLHttpRequest();
+            console.log('USENT', xhr.readyState);
+
+            <!-- configurando o send -->
+            <!-- GET , URL, true = assincrono -->
+            xhr.open('GET', `https://localhost:44381/api/Aluno/Recuperar`, true);
+            xhr.setRequestHeader('Authorization', sessionStorage.getItem('token'));
+            console.log('OPENED', xhr.readyState);
+
+            xhr.onprogress = function() {
+                console.log('LOADING', xhr.readyState);
+            };
+
+            xhr.onerror = function() {
+                console.log('ERRO', xhr.readyState);
+            }
+
+            <!--xhr.onload = function () {-->
+            
+            xhr.onreadystatechange = function () {
+                var result = this.responseText;
+                <!--document.write(result);-->
+                window.location.href = "index.html";
+            }
+
+            xhr.send();
+   
+        }
+    </script>
+</body>
+
+</html>
